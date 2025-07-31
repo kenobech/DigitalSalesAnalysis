@@ -20,6 +20,7 @@ CREATE TABLE tbl_stgRawData (
     NPS_Score INT
 );
 GO
+
 -- Import the Raw Digital Sales Data
 BULK INSERT tbl_stgRawData
 FROM 'C:\Users\User\Downloads\Digital Sales - Customer Data.csv'
@@ -379,6 +380,20 @@ ON p.ProductID = s.ProductID
 GROUP BY p.ProductName
 ORDER BY TotalRevenue DESC;
 
+--2024 TOTAL REVENUE
+SELECT SUM(Revenue) AS TotalRevenue
+FROM tbl_SalesTransaction
+WHERE YEAR(TransactionDate) = 2024;
+
+-- 2025 TOTAL REVENUE
+SELECT SUM(Revenue) AS TotalRevenue
+FROM tbl_SalesTransaction
+WHERE YEAR(TransactionDate) = 2025;
+
+-- TOTAL REVENUE
+SELECT SUM(Revenue) AS TotalRevenue
+FROM tbl_SalesTransaction;
+
 --MARKETING LEVEL ANALYSIS
 --Marketing Channel Count
 SELECT COUNT (DISTINCT Channel) AS ChannelCount
@@ -635,9 +650,6 @@ JOIN tbl_Product p2 ON p2.ProductID = Pairs.ProductB
 ORDER BY CoPurchaseCount DESC;
 GO
 
-
-
-
 --Product with no Sales
 SELECT * 
 FROM tbl_Product 
@@ -654,7 +666,6 @@ JOIN tbl_Customer c ON c.CustomerID = s.CustomerID
 GROUP BY c.FirstName, c.Country
 ORDER BY TotalSpent DESC;
 GO
-
 
 --Product Sales Summary
 SELECT DISTINCT
