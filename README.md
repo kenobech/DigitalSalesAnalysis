@@ -40,6 +40,7 @@ This project  demonstrates the end-to-end design and implementation of a digital
 ## Data Pipeline
 1. ** Create DigitalSales Database**: Create the Digital Sales Database
 
+
  **For example** :
 
   ![Create DigitalSalesDB](./Images/Create%20DigitalSales%20Database.png)
