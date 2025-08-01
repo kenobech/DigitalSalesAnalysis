@@ -32,13 +32,14 @@ This project  demonstrates the end-to-end design and implementation of a digital
 * DigitalSalesCardinality.sql
 * Digital Sales - Customer Data.csv
 
-##Set Up and Requirements
+## Set Up and Requirements
 
 **SQL Server**
 **Git for Version Control**
 
 ## Data Pipeline
 1. ** Create DigitalSales Database**: Create the Digital Sales Database
+
  **For example** :
   ![Create DigitalSalesDB](./Images/Create%20DigitalSales%20Database.png)
 
@@ -52,19 +53,22 @@ This project  demonstrates the end-to-end design and implementation of a digital
 For example, the following querries were used to check the integrity of the table and find out whether it is normalised. 
 
 **Repeated customer info** 
+
 ![Repeated customer Info](./Images/RepeatedCustomerinfo.png)
 
 **Repeated product info** 
+
 ![Repeated Product Info](./Images/RepeatedProductInfo.png)
 
 **Duplicate Platforms** 
+
 ![Duplicate Platforms](./Images/DuplicatePlatforms.png)
-code.
+
 **Duplicate Marketing Channels** 
 ![Duplicate Marketing Channels](./Images/DuplicateMarketingChannels.png)
 
 
-4. **Normalization**: The raw data is has customer info, product info, marketing info, sales and transaction info. This means that the raw data needs to be normalised upto 3NF. Therefore, the raw data must be decomposed into four main normalized entities: The new tables are normalised ensuring that each table has a Primary Key.
+4. **Normalization**: The raw data is has customer info, product info, marketing info, sales and transaction info. This means that the raw data needs to be normalised upto 3NF. Therefore, the raw data must be decomposed into four main normalized entities: The new tables are normalised ensuring that each table has a Primary Key (PK) and, where necessary a Foreign Key (FK).
    
    * Customers
    * Products
