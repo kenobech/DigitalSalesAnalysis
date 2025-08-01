@@ -104,6 +104,22 @@ For example, the following querries were used to check the integrity of the tabl
 
 8. **SQL Analysis**: The following  are a series of SQL scripts used for Analysis
 
+**Customer Level Analysis**
+
+![Customer Level Analysis](./Images/CustomerLevelAnalysis.png)
+
+![Product Level Analysis](./Images/ProductAnalysis.png)
+
+![Revenue Analysis](./Images/Revenueanalysis.png)
+
+![NPS Score](./Images/NPS%20Score.png)
+
+![KPIs](./Images/KPIs.png)
+
+![Stored Procedure](./Images/StoredProcedure.png)
+
+![Stored Function](./Images/Function.png)
+
 
 
 ## Key Analytical Findings
