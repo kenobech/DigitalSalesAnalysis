@@ -79,7 +79,7 @@ For example, the following querries were used to check the integrity of the tabl
    * Marketing Channels
    * Transactions
 
-5. **Referential Integrity**: Primary and Secondary Keys are introduced for data relationships, ensuring consistency and supporting complex joins.
+5. **Referential Integrity**: Primary and Secondary Keys are introduced for data relationships, ensuring data consistency, integrity and supporting complex joins.
 
 ## Key Analytical Findings
 
