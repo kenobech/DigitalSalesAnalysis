@@ -41,11 +41,13 @@ This project  demonstrates the end-to-end design and implementation of a digital
 1. ** Create DigitalSales Database**: Create the Digital Sales Database
 
  **For example** :
+
   ![Create DigitalSalesDB](./Images/Create%20DigitalSales%20Database.png)
 
 2. **Raw Data Ingestion**: Create a staging table (`tbl_stgRawData`) that is used to bulk-import unstructured CSV sales data.
 
 **For Example**: 
+
 ![Create tbl_stgRawData](./Images/Screenshot%202025-07-31%20112851.png)
 
 3. **Data Profiling**: SQL queries are used to detect data anomalies like duplicated customers, pricing inconsistencies, and repeated marketing values.
@@ -65,6 +67,7 @@ For example, the following querries were used to check the integrity of the tabl
 ![Duplicate Platforms](./Images/DuplicatePlatforms.png)
 
 **Duplicate Marketing Channels** 
+
 ![Duplicate Marketing Channels](./Images/DuplicateMarketingChannels.png)
 
 
