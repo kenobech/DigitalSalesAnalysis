@@ -230,6 +230,7 @@ SELECT
 FROM tbl_SalesTransaction
 GROUP BY CustomerID
 HAVING COUNT (*) > 1;
+
 --Transactions Per Customer
 SELECT
 	c.CustomerID,
@@ -239,6 +240,7 @@ FROM tbl_Customer c
 LEFT JOIN tbl_SalesTransaction s
 	ON c.CustomerID = s.CustomerID
 GROUP BY c.CustomerID, c.FirstName;
+
 --Customer Segmentation
 SELECT 
     c.CustomerID,
@@ -256,6 +258,7 @@ GROUP BY c.CustomerID, c.FirstName, c.Gender, c.Country;
 GO
 
 --PRODUCT LEVEL ANALYSIS
+
 -- Product Count
 SELECT COUNT (DISTINCT ProductName) AS ProductCount
 FROM tbl_Product;
@@ -299,23 +302,6 @@ WHERE TotalQuantity = (SELECT MAX(TotalQuantity) FROM ProductSales)
 	OR TotalQuantity = (SELECT MIN(TotalQuantity) FROM ProductSales);
 GO
 
--- Top 10 Expensive Products
-SELECT TOP 10 
-	ProductName, 
-	MAX(Price) AS Product_Price
-FROM tbl_Product
-GROUP BY ProductName
-ORDER BY Product_Price DESC;
-GO
-
--- Top 10 Cheapest Products
-SELECT TOP 10 
-	ProductName, 
-	MIN(Price) AS Product_Price
-FROM tbl_Product
-GROUP BY ProductName
-ORDER BY Product_Price;
-GO
 
 --Max and Min Price of Each Product
 SELECT
@@ -359,15 +345,6 @@ SELECT
 FROM tbl_Product
 GROUP BY Category
 ORDER BY Product_Price DESC;
-GO
-
---Cheapest Category of Products
-SELECT 
-	Category, 
-	MIN(Price) AS Product_Price
-FROM tbl_Product
-GROUP BY Category
-ORDER BY Product_Price ASC;
 GO
 
 --Revenue Per Product
@@ -474,6 +451,29 @@ JOIN tbl_Customer c ON s.CustomerID = c.CustomerID
 GROUP BY c.Country
 ORDER BY TotalRevenue DESC;
 GO
+
+-- Overall NPS Score
+SELECT
+    COUNT(*) AS TotalResponses,
+    SUM(CASE WHEN NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) AS Promoters,
+    SUM(CASE WHEN NPS_Score BETWEEN 7 AND 8 THEN 1 ELSE 0 END) AS Passives,
+    SUM(CASE WHEN NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END) AS Detractors,
+    ROUND(((SUM(CASE WHEN NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) -
+            SUM(CASE WHEN NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END)) * 100.0) /
+            NULLIF(COUNT(*), 0), 2) AS OverallNPS
+FROM tbl_SalesTransaction;
+
+--NPS Score Per Product
+SELECT
+    p.ProductName,
+    COUNT(*) AS Responses,
+    ROUND(((SUM(CASE WHEN s.NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) -
+            SUM(CASE WHEN s.NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END)) * 100.0) /
+            NULLIF(COUNT(*), 0), 2) AS NPS_Score
+FROM tbl_SalesTransaction s
+JOIN tbl_Product p ON s.ProductID = p.ProductID
+WHERE s.NPS_Score IS NOT NULL
+GROUP BY p.ProductName;
 
 -- Average NPS score per Marketing Channel
 SELECT
@@ -682,6 +682,7 @@ GROUP BY
 	p.ProductName;
 GO
 
+-- Product Sale Summary
 SELECT
     p.ProductName,
     MAX(p.Category) AS Category,
@@ -760,3 +761,4 @@ BEGIN
 END;
 
 GO
+

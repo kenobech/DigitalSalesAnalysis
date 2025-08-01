@@ -102,6 +102,10 @@ For example, the following querries were used to check the integrity of the tabl
 
 7. **Referential Integrity**: Primary and Secondary Keys are introduced for data relationships, ensuring data consistency, integrity and supporting complex joins.
 
+8. **SQL Analysis**: The following  are a series of SQL scripts used for Analysis
+
+
+
 ## Key Analytical Findings
 
 * **Customer Trends**:
