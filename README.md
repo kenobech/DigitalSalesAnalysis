@@ -34,8 +34,9 @@ This project  demonstrates the end-to-end design and implementation of a digital
 
 ## Set Up and Requirements
 
-**SQL Server**
-**Git for Version Control**
+* **SQL Server**
+
+* **Git for Version Control**
 
 ## Data Pipeline
 1. ** Create DigitalSales Database**: Create the Digital Sales Database
@@ -44,13 +45,19 @@ This project  demonstrates the end-to-end design and implementation of a digital
 
   ![Create DigitalSalesDB](./Images/Create%20DigitalSales%20Database.png)
 
-2. **Raw Data Ingestion**: Create a staging table (`tbl_stgRawData`) that is used to bulk-import unstructured CSV sales data.
+2. **Raw Data Ingestion**: Create a staging table (`tbl_stgRawData`) that is used to bulk-import unstructured CSV sales data. Staging table is vital because it ensures data validation and, cleansing, performance optimization, schema flexibility and, monitor incremental loads. In other words, a staging table provides a safe and, efficient zone between raw data ingestion and, final data storage.
 
 **For Example**: 
 
 ![Create tbl_stgRawData](./Images/Screenshot%202025-07-31%20112851.png)
 
-3. **Data Profiling**: SQL queries are used to detect data anomalies like duplicated customers, pricing inconsistencies, and repeated marketing values.
+3. **Import Data**: Bulk import the CSV data into the staging table.
+
+For example:
+
+![Import Data](./Images/Import%20Raw%20Data.png)
+
+4. **Data Profiling**: SQL queries are used to detect data anomalies like duplicated customers, pricing inconsistencies, and repeated marketing values. Use data from the Staging Table.
 
 For example, the following querries were used to check the integrity of the table and find out whether it is normalised. 
 
@@ -71,14 +78,29 @@ For example, the following querries were used to check the integrity of the tabl
 ![Duplicate Marketing Channels](./Images/DuplicateMarketingChannels.png)
 
 
-4. **Normalization**: The raw data is has customer info, product info, marketing info, sales and transaction info. This means that the raw data needs to be normalised upto 3NF. Therefore, the raw data must be decomposed into four main normalized entities: The new tables are normalised ensuring that each table has a Primary Key (PK) and, where necessary a Foreign Key (FK).
+5. **Normalization**: The raw data has customer info, product info, marketing info, sales and transaction info. This means that the raw data needs to be normalised upto 3NF. Therefore, the raw data must be decomposed into four main normalized entities: The new tables are normalised ensuring that each table has a Primary Key (PK) and, where necessary a Foreign Key (FK).
    
    * Customers
    * Products
    * Marketing Channels
    * Transactions
 
-5. **Referential Integrity**: Primary and Secondary Keys are introduced for data relationships, ensuring data consistency, integrity and supporting complex joins.
+   **Example**:
+
+   ![Customer, Products and, Marketing Table](./Images/Customertable.png)
+
+
+   ![SalesTransactionTable](./Images/salesTable.png)
+
+6. **Data Deduplication**: Insert data into the newly created normalised tables
+  
+  ![Customers, Products and, Marketing Table](./Images/Dedup1.png)
+
+
+  ![SalesTable](./Images/Dedup2.png)
+
+
+7. **Referential Integrity**: Primary and Secondary Keys are introduced for data relationships, ensuring data consistency, integrity and supporting complex joins.
 
 ## Key Analytical Findings
 
