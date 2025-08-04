@@ -123,9 +123,33 @@ For example, the following querries were used to check the integrity of the tabl
 
 
 ## Key Analytical Findings
+* **High-Level KPIs**
+* Total Customers: 8946
+* Total Revenue: $74.17M
+* Total Transactions: 294K
+* Marketing Channels: 8
+* Marketing Platforms: 6
+
+* **Key Insights**
+* Top Revenue Countries
+China leads clearly in revenue. Followed closely by Indonesia and then Russia.
+
+* Product Performance
+Content Calenda Pro, Webinar: Launch Your First Course and, Habit Tracker for Creators are the best performing products in revenue generation.
+
+* Marketing Channels
+Affiliate Marketing is the best marketing channel. The rest perform in a similar manner because their revenue are similar.
+
+* Marketing Platforms
+Teachable, Direct and, shopify Platforms are the best in revenue generation.
+
+* Gender Breakdown
+Male and Female customers are neck-to-neck ($33.69M & $32.16M). The other gender groups contribute less than $2M each.
+
+**Business Value and Performance Analysis**
+The revenue generated shows a strong base line, indicating success in digital sales. There is a health product-market fit as indicated by the high volume of transactions. As for the top revenue countries, localize marketing in China, Indonesia and, Russia. More marketing focus should be done in lower yielding countries to increase revenue. Promote the top three products agressively. To boost the value perception of the other products, they should be bundled.
 
 * **Customer Trends**:
-
   * Highest customer base: China, Indonesia, and Russia.
   * Gender: Males and females were nearly equally distributed. Agender customers were least represented.
   * All customers completed at least one transaction, indicating 100% conversion.
@@ -154,21 +178,11 @@ For example, the following querries were used to check the integrity of the tabl
   * Multiple repeat customers indicate loyalty potential.
   * Product pairs showed strong cross-sell potential.
 
-## KPIs and Reports
+## Visualization
 
-* **Executive Summary View**: Combines key metrics — revenue, transactions, NPS, customers, countries, and platforms.
+This is the Sales Dashboard
 
-* **Revenue Metrics**:
-
-  * Time-based metrics: daily, weekly, monthly, quarterly, and yearly.
-  * Country and product revenue rankings.
-  * Repeat purchase and customer lifetime value metrics.
-
-* **Advanced Reports**:
-
-  * Product lifecycle trends (monthly sales and revenue).
-  * Co-purchase analysis for cross-sell opportunities.
-  * Highest-spending customers.
+![SalesDashboard](./Images/DigitalSales%20Dashboard.png)
 
 ## Entity-Relationship Design
 
@@ -182,6 +196,10 @@ The database follows a star schema:
 
 `tbl_SalesTransaction` acts as the **Fact Table**, centralizing metrics and linking dimension tables.
 
+**For Example**:
+
+![Table Design](./Images/DigitalSalesERD.png)
+
 ## Technical Enhancements
 
 * **Stored Procedures**: `usp_ShowSales`, `usp_RevenuePerProduct`
@@ -189,15 +207,6 @@ The database follows a star schema:
 * **Views**: `vw_ExecutiveSummary`, `vw_ProductRevenueByCountry`
 * **Indexes**: On foreign key fields for optimized query performance
 
-## Real-World Applications
-
-This database solution provides a template for companies that sell digital products (e.g., via Teachable, Gumroad) and want to:
-
-* Identify which products to promote or retire.
-* Discover loyal customer segments for targeted campaigns.
-* Evaluate ROI of marketing platforms and channels.
-* Tailor marketing by country and platform for better conversion.
-* Analyze product pairings to inform bundling strategies.
 
 ## Recommendations
 
