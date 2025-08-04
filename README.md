@@ -31,12 +31,15 @@ This project  demonstrates the end-to-end design and implementation of a digital
 * DigitalSales_Analysis.sql
 * DigitalSalesCardinality.sql
 * Digital Sales - Customer Data.csv
+* DigitalSalesAnalysis.pbix
 
 ## Set Up and Requirements
 
 * **SQL Server**
 
 * **Git for Version Control**
+
+* **Microsoft Power BI**
 
 ## Data Pipeline
 1. ** Create DigitalSales Database**: Create the Digital Sales Database
@@ -121,6 +124,10 @@ For example, the following querries were used to check the integrity of the tabl
 ![Stored Function](./Images/Function.png)
 
 
+## Visualizations
+I built the DigitalSales Dashboard.
+
+![DigitalSales Dashboard](./Images/DigitalSales%20Dashboard.png)
 
 ## Key Analytical Findings
 * **High-Level KPIs**
@@ -178,11 +185,6 @@ The revenue generated shows a strong base line, indicating success in digital sa
   * Multiple repeat customers indicate loyalty potential.
   * Product pairs showed strong cross-sell potential.
 
-## Visualization
-
-This is the Sales Dashboard
-
-![SalesDashboard](./Images/DigitalSales%20Dashboard.png)
 
 ## Entity-Relationship Design
 
@@ -220,4 +222,4 @@ The database follows a star schema:
 
 ## Summary
 
-This project demonstrates how relational databases can transform messy sales data into clear, powerful insights. Through careful schema design, normalization, and analytical reporting, businesses gain the tools to make smarter decisions. The analysis not only identifies revenue drivers and customer trends but also offers strategies for increased engagement, optimized campaigns, and scalable growth.
+This project demonstrates how relational databases can transform messy sales data into clear, powerful insights. Through careful schema design, normalization, analytical reporting and, visualization, businesses gain the tools to make smarter decisions. The analysis not only identifies revenue drivers and customer trends but also offers strategies for increased engagement, optimized campaigns, and scalable growth.
