@@ -1,45 +1,39 @@
 # Digital Sales Database Project
 
-## Project Overview
+## Overview
 
-This project  demonstrates the end-to-end design and implementation of a digital sales database solution to support product performance analysis, customer segmentation, and marketing impact assessment. The core objective is to **derive actionable business insights from digital sales data** that can inform product strategy, optimize marketing, and improve customer experience.
+This project showcases the end-to-end design and implementation of a digital sales database solution for product performance analysis, customer segmentation, and marketing impact assessment. The primary goal is to **extract actionable business insights from digital sales data** to inform product strategy, optimize marketing, and enhance customer experience.
 
-## Project Features
-**TransactionDate**
-**FirstName**
-**Gender**
-**ProductName**
-**Category**
-**Price**
-**Quantity**
-**Revenue**
-**Country**
-**Platform**
-**MarketingChannel**
-**NPS Score**
+## Features
 
-## Project Objectives
+- Transaction Date
+- Customer Details (First Name, Gender, Country)
+- Product Details (Name, Category, Price)
+- Quantity & Revenue
+- Platform & Marketing Channel
+- NPS Score
 
-* Identify high-value markets and marketing platforms to guide product and marketing strategies.
-* Analyze product performance by sales volume and revenue.
-* Identify high-performing and underperforming marketing platforms and channels.
-* Understand geographic trends in customer acquisition and revenue generation.
-* Enable data-driven decisions to improve product, marketing, and customer strategies.
+## Objectives
+
+- Identify high-value markets and marketing platforms.
+- Analyze product performance by sales volume and revenue.
+- Assess marketing channel and platform effectiveness.
+- Uncover geographic trends in customer acquisition and revenue.
+- Enable data-driven decisions for product, marketing, and customer strategies.
 
 ## Project Structure
-* README.MD
-* DigitalSales_Analysis.sql
-* DigitalSalesCardinality.sql
-* Digital Sales - Customer Data.csv
-* DigitalSalesAnalysis.pbix
 
-## Set Up and Requirements
+- `README.md`
+- `DigitalSales_Analysis.sql`
+- `DigitalSalesCardinality.sql`
+- `Digital Sales - Customer Data.csv`
+- `DigitalSalesAnalysis.pbix`
 
-* **SQL Server**
+## Setup & Requirements
 
-* **Git for Version Control**
-
-* **Microsoft Power BI**
+- SQL Server
+- Git (Version Control)
+- Microsoft Power BI
 
 ## Data Pipeline
 1. ** Create DigitalSales Database**: Create the Digital Sales Database
@@ -125,101 +119,83 @@ For example, the following querries were used to check the integrity of the tabl
 
 
 ## Visualizations
-I built the DigitalSales Dashboard.
+- I built an interactive DigitalSales Dashboard for executive summaries and detailed analysis.
 
 ![DigitalSales Dashboard](./Images/DigitalSales%20Dashboard.png)
 
 ## Key Analytical Findings
-* **High-Level KPIs**
-* Total Customers: 8946
-* Total Revenue: $74.17M
-* Total Transactions: 294K
-* Marketing Channels: 8
-* Marketing Platforms: 6
 
-* **Key Insights**
-* Top Revenue Countries
-China leads clearly in revenue. Followed closely by Indonesia and then Russia.
+- **KPIs**:  
+  - Total Customers: 8,946  
+  - Total Revenue: $74.17M  
+  - Total Transactions: 294K  
+  - Marketing Channels: 8  
+  - Platforms: 6
 
-* Product Performance
-Content Calenda Pro, Webinar: Launch Your First Course and, Habit Tracker for Creators are the best performing products in revenue generation.
+- **Insights**:
+  - **Top Revenue Countries**: China, Indonesia, Russia
+  - **Best-Selling Products**: Content Calendar Pro, Webinar: Launch Your First Course, Habit Tracker for Creators
+  - **Top Marketing Channel**: Affiliate Marketing
+  - **Top Platforms**: Teachable, Direct, Shopify
+  - **Gender Breakdown**: Male and female customers are nearly equal in revenue contribution.
 
-* Marketing Channels
-Affiliate Marketing is the best marketing channel. The rest perform in a similar manner because their revenue are similar.
+- **Customer Trends**:
+  - Highest customer base: China, Indonesia, Russia
+  - Gender distribution: Balanced between male and female; agender least represented
+  - 100% conversion rate (all customers completed at least one transaction)
 
-* Marketing Platforms
-Teachable, Direct and, shopify Platforms are the best in revenue generation.
+- **Product Performance**:
+  - 10 digital products analyzed
+  - Top seller: Content Calendar Pro (16,524 units)
+  - Lowest seller: AI Course for Beginners (13,991 units)
+  - Most products priced at $148 or $149
 
-* Gender Breakdown
-Male and Female customers are neck-to-neck ($33.69M & $32.16M). The other gender groups contribute less than $2M each.
+- **Marketing Insights**:
+  - Affiliate marketing generated the highest revenue (~$1.8M)
+  - Facebook Ads generated the least (~$1.58M)
+  - Best-performing platform: Teachable (~$2.28M)
+  - Lowest-performing platform: Gumroad (~$2.03M)
 
-**Business Value and Performance Analysis**
-The revenue generated shows a strong base line, indicating success in digital sales. There is a health product-market fit as indicated by the high volume of transactions. As for the top revenue countries, localize marketing in China, Indonesia and, Russia. More marketing focus should be done in lower yielding countries to increase revenue. Promote the top three products agressively. To boost the value perception of the other products, they should be bundled.
+- **Revenue by Geography**:
+  - China, Indonesia, Russia lead in customer base and revenue
+  - Dominica is the lowest contributor
 
-* **Customer Trends**:
-  * Highest customer base: China, Indonesia, and Russia.
-  * Gender: Males and females were nearly equally distributed. Agender customers were least represented.
-  * All customers completed at least one transaction, indicating 100% conversion.
-
-* **Product Performance**:
-
-  * 10 digital products analyzed.
-  * Top seller by volume: "Content Calendar Pro" (16,524 units).
-  * Lowest seller: "AI Course for Beginners" (13,991 units).
-  * Most products priced uniformly at 148 or 149.
-
-* **Marketing Insights**:
-
-  * Affiliate marketing drove the highest revenue (\~1.8M).
-  * Facebook Ads generated the least (\~1.58M).
-  * Best-performing platform: Teachable (\~2.28M).
-  * Lowest-performing platform: Gumroad (\~2.03M).
-
-* **Revenue by Geography**:
-
-  * China, Indonesia, and Russia led in customer base and revenue.
-  * Dominica was the lowest revenue contributor.
-
-* **Customer Behavior**:
-
-  * Multiple repeat customers indicate loyalty potential.
-  * Product pairs showed strong cross-sell potential.
-
+- **Customer Behavior**:
+  - Multiple repeat customers indicate loyalty potential
+  - Product pairs show strong cross-sell opportunities
 
 ## Entity-Relationship Design
 
-The database follows a star schema:
+The database uses a star schema:
 
-| From                                          | To        | Type |
-| --------------------------------------------- | --------- | ---- |
-| tbl\_Customer → tbl\_SalesTransaction         | 1-to-Many |      |
-| tbl\_Product → tbl\_SalesTransaction          | 1-to-Many |      |
-| tbl\_MarketingChannel → tbl\_SalesTransaction | 1-to-Many |      |
+| From                                          | To        | Type      |
+| --------------------------------------------- | --------- | --------- |
+| tbl_Customer → tbl_SalesTransaction           | 1-to-Many |
+| tbl_Product → tbl_SalesTransaction            | 1-to-Many |
+| tbl_MarketingChannel → tbl_SalesTransaction   | 1-to-Many |
 
-`tbl_SalesTransaction` acts as the **Fact Table**, centralizing metrics and linking dimension tables.
+`tbl_SalesTransaction` serves as the **Fact Table**, linking dimension tables.
 
-**For Example**:
-
-![Table Design](./Images/DigitalSalesERD.png)
+-Here's a simplified ER diagram:
+![ER Diagram](./Images/DigitalSalesERD.png)
 
 ## Technical Enhancements
 
-* **Stored Procedures**: `usp_ShowSales`, `usp_RevenuePerProduct`
-* **Functions**: `fn_TotalRevenue`
-* **Views**: `vw_ExecutiveSummary`, `vw_ProductRevenueByCountry`
-* **Indexes**: On foreign key fields for optimized query performance
-
+- **Stored Procedures**: `usp_ShowSales`, `usp_RevenuePerProduct`
+- **Functions**: `fn_TotalRevenue`
+- **Views**: `vw_ExecutiveSummary`, `vw_ProductRevenueByCountry`
+- **Indexes**: On foreign key fields for optimized query performance
 
 ## Recommendations
 
-* **Target High-Revenue Countries**: Focus marketing and product expansion in China, Indonesia, and Russia, as they have the largest customer bases and revenue potential.
-* **Invest in Top Channels and Platforms**: Prioritize Affiliate marketing and Teachable for campaigns due to their superior performance. Consider reallocating budgets away from underperforming platforms like Facebook Ads and Gumroad.
-* **Introduce Loyalty Programs**: Engage repeat customers through loyalty rewards or exclusive offers to increase retention and advocacy.
-* **Bundle Complementary Products**: Use co-purchase trends to develop bundled offerings (e.g., Content Calendar Pro + Productivity Booster Pack).
-* **Explore Underperforming Products**: Reposition or improve lower-selling items like "AI Course for Beginners" through pricing adjustments or targeted promotions.
-* **Optimize NPS Feedback Loops**: Leverage channel- and platform-specific NPS to prioritize UX improvements and boost satisfaction.
-* **Expand Demographic Data**: Enrich customer profiles with behavioral or demographic information to power advanced segmentation.
+- **Target High-Revenue Countries**: Focus marketing and product expansion in China, Indonesia, and Russia.
+- **Invest in Top Channels and Platforms**: Prioritize Affiliate Marketing and Teachable; consider reallocating budgets from underperforming platforms.
+- **Introduce Loyalty Programs**: Reward repeat customers to increase retention.
+- **Bundle Complementary Products**: Develop bundled offerings based on co-purchase trends.
+- **Reposition Underperforming Products**: Adjust pricing or promotions for items like "AI Course for Beginners."
+- **Optimize NPS Feedback Loops**: Use channel- and platform-specific NPS to guide UX improvements.
+- **Expand Demographic Data**: Enrich customer profiles for advanced segmentation.
 
 ## Summary
 
-This project demonstrates how relational databases can transform messy sales data into clear, powerful insights. Through careful schema design, normalization, analytical reporting and, visualization, businesses gain the tools to make smarter decisions. The analysis not only identifies revenue drivers and customer trends but also offers strategies for increased engagement, optimized campaigns, and scalable growth.
+This project demonstrates how relational databases can transform messy sales data into actionable insights. Through careful schema design, normalization, analytical reporting, and visualization, businesses gain the tools to make smarter decisions. The analysis identifies revenue drivers, customer trends, and strategies for increased engagement, optimized campaigns, and scalable growth.

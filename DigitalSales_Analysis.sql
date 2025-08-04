@@ -1,12 +1,16 @@
--- CREATE DATABASE
+-- ============================================
+-- DIGITAL SALES DATABASE PROJECT - SQL SERVER
+-- ============================================
+
+-- 1. DATABASE CREATION
 CREATE DATABASE DigitalSalesDB;
 GO
 USE DigitalSalesDB;
 GO
 
--- Create the Staging Table
+-- 2. STAGING TABLE FOR RAW DATA
 CREATE TABLE tbl_stgRawData (
-	TransactionDate DATE,
+    TransactionDate DATE,
     FirstName VARCHAR(100),
     Gender VARCHAR(100),
     ProductName VARCHAR(100),
@@ -21,138 +25,124 @@ CREATE TABLE tbl_stgRawData (
 );
 GO
 
--- Import the Raw Digital Sales Data
+-- 3. BULK IMPORT RAW DATA
+-- (Ensure the file path and permissions are correct)
 BULK INSERT tbl_stgRawData
 FROM 'C:\Users\User\Downloads\Digital Sales - Customer Data.csv'
 WITH (
-	FIELDTERMINATOR = ';',
-	ROWTERMINATOR = '\n',
-	FIRSTROW = 2,
-	TABLOCK
+    FIELDTERMINATOR = ';',
+    ROWTERMINATOR = '\n',
+    FIRSTROW = 2,
+    TABLOCK
 );
 GO
 
--- Explore the raw Digital Sales Data and Find out if the table is Normalized
----View the whole raw data
-SELECT *
-FROM tbl_stgRawData;
+-- 4. DATA PROFILING & ANOMALY DETECTION
+-- View raw data
+SELECT * FROM tbl_stgRawData;
 
----Check for repeated Customer info
-SELECT
-	 FirstName,
-	 COUNT(DISTINCT Gender) AS GenderCount,
-	 COUNT (DISTINCT Country) AS CountryCount
+-- Repeated Customer Info
+SELECT FirstName, COUNT(DISTINCT Gender) AS GenderCount, COUNT(DISTINCT Country) AS CountryCount
 FROM tbl_stgRawData
 GROUP BY FirstName
-HAVING COUNT(DISTINCT Gender)>1 AND COUNT(DISTINCT Country)>1;
+HAVING COUNT(DISTINCT Gender) > 1 OR COUNT(DISTINCT Country) > 1;
 GO
 
----Check for repeated Product info
-SELECT
-	ProductName,
-	COUNT(DISTINCT Category) AS CategoryCount,
-	COUNT (DISTINCT Price) AS PriceCount
+-- Repeated Product Info
+SELECT ProductName, COUNT(DISTINCT Category) AS CategoryCount, COUNT(DISTINCT Price) AS PriceCount
 FROM tbl_stgRawData
 GROUP BY ProductName
-HAVING COUNT(DISTINCT Category) >1 AND COUNT (DISTINCT Price) >1;
+HAVING COUNT(DISTINCT Category) > 1 OR COUNT(DISTINCT Price) > 1;
 GO
 
----Check Duplicate Marketing Channels
-SELECT
-	MarketingChannel,
-	COUNT(*) AS ChannelCount
+-- Duplicate Marketing Channels
+SELECT MarketingChannel, COUNT(*) AS ChannelCount
 FROM tbl_stgRawData
 GROUP BY MarketingChannel
-HAVING COUNT(*)>1;
+HAVING COUNT(*) > 1;
 GO
 
----Check Duplicate Platforms
-SELECT
-	Platform,
-	COUNT(*) AS PlatformCount
+-- Duplicate Platforms
+SELECT Platform, COUNT(*) AS PlatformCount
 FROM tbl_stgRawData
 GROUP BY Platform
-HAVING COUNT(*)>1;
+HAVING COUNT(*) > 1;
 GO
 
----Platforms that uses more than one MarketingChannel
-SELECT
-	Platform,
-	COUNT(DISTINCT MarketingChannel) AS MarketingChannelCount
+-- Platforms with Multiple Marketing Channels
+SELECT Platform, COUNT(DISTINCT MarketingChannel) AS MarketingChannelCount
 FROM tbl_stgRawData
 GROUP BY Platform
-HAVING COUNT(DISTINCT MarketingChannel)>1;
+HAVING COUNT(DISTINCT MarketingChannel) > 1;
 GO
 
----MarketingChannels that uses more than one Platform
-SELECT
-	MarketingChannel,
-	COUNT(DISTINCT Platform) AS PlatformCount
+-- Marketing Channels with Multiple Platforms
+SELECT MarketingChannel, COUNT(DISTINCT Platform) AS PlatformCount
 FROM tbl_stgRawData
 GROUP BY MarketingChannel
-HAVING COUNT(DISTINCT Platform)>1;
+HAVING COUNT(DISTINCT Platform) > 1;
 GO
 
---CREATE NORMALISED TABLES
--- Create Customer Table
+-- 5. NORMALIZED TABLES
+-- Customer Table
 CREATE TABLE tbl_Customer (
-	CustomerID INT IDENTITY (1,1) CONSTRAINT PK_tbl_Customer PRIMARY KEY,
-	FirstName VARCHAR (100) NOT NULL,
-	Gender VARCHAR (100) NOT NULL,
-	Country VARCHAR (100) NOT NULL
+    CustomerID INT IDENTITY(1,1) PRIMARY KEY,
+    FirstName VARCHAR(100) NOT NULL,
+    Gender VARCHAR(100) NOT NULL,
+    Country VARCHAR(100) NOT NULL
 );
 GO
 
--- Create Product Table
+-- Product Table
 CREATE TABLE tbl_Product (
-	ProductID INT IDENTITY(1,1) CONSTRAINT PK_tbl_Product PRIMARY KEY,
-	ProductName VARCHAR (100) NOT NULL,
-	Category VARCHAR (100) NOT NULL,
-	Price DECIMAL (10,2) NOT NULL CONSTRAINT CHK_tbl_Product_Price_Positive CHECK (Price>0)
+    ProductID INT IDENTITY(1,1) PRIMARY KEY,
+    ProductName VARCHAR(100) NOT NULL,
+    Category VARCHAR(100) NOT NULL,
+    Price DECIMAL(10,2) NOT NULL CHECK (Price > 0)
 );
 GO
 
--- Create Marketing Channel Table
+-- Marketing Channel Table
 CREATE TABLE tbl_MarketingChannel (
-	MarketingID INT IDENTITY (1,1) CONSTRAINT PK_tbl_MarketingChannel PRIMARY KEY,
-	Platform VARCHAR (100) NOT NULL,
-	Channel VARCHAR (100) NOT NULL
+    MarketingID INT IDENTITY(1,1) PRIMARY KEY,
+    Platform VARCHAR(100) NOT NULL,
+    Channel VARCHAR(100) NOT NULL
 );
 GO
 
--- Create Sales Transaction Table
+-- Sales Transaction Table
 CREATE TABLE tbl_SalesTransaction (
-    TransactionID INT IDENTITY(1,1) CONSTRAINT PK_tbl_SalesTransaction PRIMARY KEY,
-    CustomerID INT FOREIGN KEY REFERENCES tbl_Customer(CustomerID),
-    ProductID INT FOREIGN KEY REFERENCES tbl_Product(ProductID),
-    MarketingID INT FOREIGN KEY REFERENCES tbl_MarketingChannel(MarketingID),
+    TransactionID INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID INT NOT NULL FOREIGN KEY REFERENCES tbl_Customer(CustomerID),
+    ProductID INT NOT NULL FOREIGN KEY REFERENCES tbl_Product(ProductID),
+    MarketingID INT NOT NULL FOREIGN KEY REFERENCES tbl_MarketingChannel(MarketingID),
     TransactionDate DATE NOT NULL,
-    Quantity INT NOT NULL CONSTRAINT CHK_tbl_SalesTransaction_Quantity_Positive CHECK (Quantity > 0),
-    Revenue DECIMAL(12,2) NOT NULL CONSTRAINT CHK_tbl_SalesTransaction_Revenue_Positive CHECK (Revenue >= 0),
-    NPS_Score INT CONSTRAINT CHK_tbl_SalesTransaction_NPS_Valid CHECK (NPS_Score BETWEEN 0 AND 10)
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+    Revenue DECIMAL(12,2) NOT NULL CHECK (Revenue >= 0),
+    NPS_Score INT CHECK (NPS_Score BETWEEN 0 AND 10)
 );
 GO
 
--- Deduplicate and Insert Data into the New Normalized Tables
---Customer Table
+-- 6. DEDUPLICATION & DATA INSERTION
+-- Insert Customers
 INSERT INTO tbl_Customer (FirstName, Gender, Country)
 SELECT DISTINCT FirstName, Gender, Country
 FROM tbl_stgRawData;
 GO
 
---Product Table
+-- Insert Products
 INSERT INTO tbl_Product (ProductName, Category, Price)
 SELECT DISTINCT ProductName, Category, Price
 FROM tbl_stgRawData;
 GO
 
--- Marketing Channels Table
+-- Insert Marketing Channels
 INSERT INTO tbl_MarketingChannel (Platform, Channel)
 SELECT DISTINCT Platform, MarketingChannel
 FROM tbl_stgRawData;
 GO
 
--- Transaction Table
+-- Insert Transactions
 INSERT INTO tbl_SalesTransaction (
     CustomerID, ProductID, MarketingID, TransactionDate, Quantity, Revenue, NPS_Score
 )
@@ -170,15 +160,10 @@ JOIN tbl_Product p ON s.ProductName = p.ProductName AND s.Category = p.Category 
 JOIN tbl_MarketingChannel m ON s.Platform = m.Platform AND s.MarketingChannel = m.Channel;
 GO
 
--- create Indexes
-CREATE NONCLUSTERED INDEX IX_tbl_SalesTransaction_CustomerID
-    ON tbl_SalesTransaction (CustomerID);
-
-CREATE NONCLUSTERED INDEX IX_tbl_SalesTransaction_ProductID
-    ON tbl_SalesTransaction (ProductID);
-
-CREATE NONCLUSTERED INDEX IX_tbl_SalesTransaction_TransactionDate
-    ON tbl_SalesTransaction (TransactionDate);
+-- 7. INDEXES FOR PERFORMANCE
+CREATE NONCLUSTERED INDEX IX_tbl_SalesTransaction_CustomerID ON tbl_SalesTransaction (CustomerID);
+CREATE NONCLUSTERED INDEX IX_tbl_SalesTransaction_ProductID ON tbl_SalesTransaction (ProductID);
+CREATE NONCLUSTERED INDEX IX_tbl_SalesTransaction_TransactionDate ON tbl_SalesTransaction (TransactionDate);
 GO
 
 --CUSTOMER LEVEL ANALYSIS
@@ -316,6 +301,7 @@ ORDER BY p.ProductName;
 GO
 
 --Products With Extreme Price Fluctuations
+
 WITH PriceExtremes AS (
 	SELECT 
 		p.ProductName,
@@ -680,20 +666,6 @@ LEFT JOIN tbl_SalesTransaction s ON s.ProductID = p.ProductID
 GROUP BY
 	p.ProductID,
 	p.ProductName;
-GO
-
--- Product Sale Summary
-SELECT
-    p.ProductName,
-    MAX(p.Category) AS Category,
-    SUM(s.Quantity) AS TotalUnitsSold,
-    COUNT(DISTINCT s.TransactionID) AS TotalSales,
-    SUM(s.Revenue) AS TotalRevenue,
-    AVG(CAST(s.NPS_Score AS FLOAT)) AS AvgNPS
-FROM tbl_Product p
-JOIN tbl_SalesTransaction s ON s.ProductID = p.ProductID
-GROUP BY p.ProductName
-ORDER BY p.ProductName;
 GO
 
 
