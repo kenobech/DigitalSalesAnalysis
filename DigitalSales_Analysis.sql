@@ -38,45 +38,45 @@ WITH (
 GO
 
 -- 4. DATA PROFILING & ANOMALY DETECTION
--- View raw data
+-- 4.1. View Raw Data
 SELECT * FROM tbl_stgRawData;
+GO
 
--- Repeated Customer Info
+-- 4.2. Customer Data Consistency
 SELECT FirstName, COUNT(DISTINCT Gender) AS GenderCount, COUNT(DISTINCT Country) AS CountryCount
 FROM tbl_stgRawData
 GROUP BY FirstName
 HAVING COUNT(DISTINCT Gender) > 1 OR COUNT(DISTINCT Country) > 1;
 GO
 
--- Repeated Product Info
+-- 4.3. Product Data Consistency
 SELECT ProductName, COUNT(DISTINCT Category) AS CategoryCount, COUNT(DISTINCT Price) AS PriceCount
 FROM tbl_stgRawData
 GROUP BY ProductName
 HAVING COUNT(DISTINCT Category) > 1 OR COUNT(DISTINCT Price) > 1;
 GO
 
--- Duplicate Marketing Channels
+-- 4.4. Marketing Channel Consistency
 SELECT MarketingChannel, COUNT(*) AS ChannelCount
 FROM tbl_stgRawData
 GROUP BY MarketingChannel
 HAVING COUNT(*) > 1;
 GO
 
--- Duplicate Platforms
+-- 4.5. Platform Consistency
 SELECT Platform, COUNT(*) AS PlatformCount
 FROM tbl_stgRawData
 GROUP BY Platform
 HAVING COUNT(*) > 1;
 GO
 
--- Platforms with Multiple Marketing Channels
+-- 4.6. Platform-MarketingChannel Relationship
 SELECT Platform, COUNT(DISTINCT MarketingChannel) AS MarketingChannelCount
 FROM tbl_stgRawData
 GROUP BY Platform
 HAVING COUNT(DISTINCT MarketingChannel) > 1;
 GO
 
--- Marketing Channels with Multiple Platforms
 SELECT MarketingChannel, COUNT(DISTINCT Platform) AS PlatformCount
 FROM tbl_stgRawData
 GROUP BY MarketingChannel
@@ -84,7 +84,7 @@ HAVING COUNT(DISTINCT Platform) > 1;
 GO
 
 -- 5. NORMALIZED TABLES
--- Customer Table
+-- 5.1 Customer Table
 CREATE TABLE tbl_Customer (
     CustomerID INT IDENTITY(1,1) PRIMARY KEY,
     FirstName VARCHAR(100) NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE tbl_Customer (
 );
 GO
 
--- Product Table
+-- 5.2 Product Table
 CREATE TABLE tbl_Product (
     ProductID INT IDENTITY(1,1) PRIMARY KEY,
     ProductName VARCHAR(100) NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE tbl_Product (
 );
 GO
 
--- Marketing Channel Table
+-- 5.3 Marketing Table
 CREATE TABLE tbl_MarketingChannel (
     MarketingID INT IDENTITY(1,1) PRIMARY KEY,
     Platform VARCHAR(100) NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE tbl_MarketingChannel (
 );
 GO
 
--- Sales Transaction Table
+-- 5.4 Sales Transaction Table
 CREATE TABLE tbl_SalesTransaction (
     TransactionID INT IDENTITY(1,1) PRIMARY KEY,
     CustomerID INT NOT NULL FOREIGN KEY REFERENCES tbl_Customer(CustomerID),
@@ -124,25 +124,25 @@ CREATE TABLE tbl_SalesTransaction (
 GO
 
 -- 6. DEDUPLICATION & DATA INSERTION
--- Insert Customers
+-- 6.1. Insert Unique Customers
 INSERT INTO tbl_Customer (FirstName, Gender, Country)
 SELECT DISTINCT FirstName, Gender, Country
 FROM tbl_stgRawData;
 GO
 
--- Insert Products
+-- 6.2. Insert Unique Products
 INSERT INTO tbl_Product (ProductName, Category, Price)
 SELECT DISTINCT ProductName, Category, Price
 FROM tbl_stgRawData;
 GO
 
--- Insert Marketing Channels
+-- 6.3. Insert Unique Marketing Channels
 INSERT INTO tbl_MarketingChannel (Platform, Channel)
 SELECT DISTINCT Platform, MarketingChannel
 FROM tbl_stgRawData;
 GO
 
--- Insert Transactions
+-- 6.4. Insert Transactions
 INSERT INTO tbl_SalesTransaction (
     CustomerID, ProductID, MarketingID, TransactionDate, Quantity, Revenue, NPS_Score
 )
@@ -166,67 +166,24 @@ CREATE NONCLUSTERED INDEX IX_tbl_SalesTransaction_ProductID ON tbl_SalesTransact
 CREATE NONCLUSTERED INDEX IX_tbl_SalesTransaction_TransactionDate ON tbl_SalesTransaction (TransactionDate);
 GO
 
---CUSTOMER LEVEL ANALYSIS
-
---Total Customers
-SELECT COUNT(DISTINCT CustomerID) AS CustomerCount
-FROM tbl_Customer;
-
---Total Number of Countries Used for Analysis
-SELECT COUNT (DISTINCT Country) AS CountryCount
-FROM tbl_Customer;
-
---Customer Per Country
-SELECT  
-	Country, 
-	COUNT(*) AS CustomerCount
-FROM tbl_Customer
-GROUP BY Country
-ORDER BY  CustomerCount DESC;
+-- 8. CUSTOMER LEVEL ANALYSIS
+-- 8.1. Total Customers
+SELECT COUNT(DISTINCT CustomerID) AS CustomerCount FROM tbl_Customer;
 GO
 
--- Customer Count Per Gender
-SELECT  
-	Gender, 
-	COUNT(*) AS CustomerCount
-FROM tbl_Customer
-GROUP BY Gender
-ORDER BY  CustomerCount DESC;
+-- 8.2. Customers by Country
+SELECT Country, COUNT(*) AS CustomerCount FROM tbl_Customer GROUP BY Country ORDER BY CustomerCount DESC;
 GO
 
---Customers with 0 Transaction
-SELECT * 
-FROM tbl_Customer 
-WHERE CustomerID NOT IN (SELECT DISTINCT CustomerID FROM tbl_SalesTransaction WHERE CustomerID IS NOT NULL);
+-- 8.3. Customers by Gender
+SELECT Gender, COUNT(*) AS CustomerCount FROM tbl_Customer GROUP BY Gender ORDER BY CustomerCount DESC;
 GO
 
-SELECT 
-	c.* 
-FROM tbl_Customer c 
-LEFT JOIN tbl_SalesTransaction s 
-	ON c.CustomerID = s.CustomerID 
-WHERE s.CustomerID IS NULL;
+-- 8.4. Repeat Customers
+SELECT CustomerID, COUNT(*) AS TransactionCount FROM tbl_SalesTransaction GROUP BY CustomerID HAVING COUNT(*) > 1;
 GO
 
---Repeat Customers
-SELECT 
-	CustomerID,
-	COUNT(*) AS TransactionCount
-FROM tbl_SalesTransaction
-GROUP BY CustomerID
-HAVING COUNT (*) > 1;
-
---Transactions Per Customer
-SELECT
-	c.CustomerID,
-	c. FirstName,
-	COUNT(s.TransactionID) AS TransactionCount
-FROM tbl_Customer c
-LEFT JOIN tbl_SalesTransaction s
-	ON c.CustomerID = s.CustomerID
-GROUP BY c.CustomerID, c.FirstName;
-
---Customer Segmentation
+-- 8.5. Customer Segmentation
 SELECT 
     c.CustomerID,
     c.FirstName,
@@ -242,295 +199,81 @@ JOIN tbl_SalesTransaction s ON c.CustomerID = s.CustomerID
 GROUP BY c.CustomerID, c.FirstName, c.Gender, c.Country;
 GO
 
---PRODUCT LEVEL ANALYSIS
+-- 9. PRODUCT LEVEL ANALYSIS
+-- 9.1. Total Products
+SELECT COUNT(DISTINCT ProductName) AS ProductCount FROM tbl_Product;
+GO
 
--- Product Count
-SELECT COUNT (DISTINCT ProductName) AS ProductCount
-FROM tbl_Product;
-
---ProductName and Count
+-- 9.2. Product Sales Summary
 SELECT 
-	ProductName, 
-	COUNT(*) as ProductCount 
-FROM tbl_Product
-GROUP BY ProductName
-ORDER BY ProductName DESC;
-GO
-
---Total Quantity sold per Product
-WITH ProductSales AS (
-	SELECT
-		p.ProductName,
-		SUM (s.Quantity) AS TotalQuantity
-FROM tbl_SalesTransaction s
-JOIN tbl_Product p
-	ON s.ProductID = p.ProductID
-GROUP BY p.ProductName
-)
-SELECT *
-FROM  ProductSales;
-
---Highest And Lowest Quantity of Product Sold
-
-WITH ProductSales AS (
-	SELECT
-		p.ProductName,
-		SUM (s.Quantity) AS TotalQuantity
-FROM tbl_SalesTransaction s
-JOIN tbl_Product p
-	ON s.ProductID = p.ProductID
-GROUP BY p.ProductName
-)
-SELECT *
-FROM  ProductSales
-WHERE TotalQuantity = (SELECT MAX(TotalQuantity) FROM ProductSales)
-	OR TotalQuantity = (SELECT MIN(TotalQuantity) FROM ProductSales);
-GO
-
-
---Max and Min Price of Each Product
-SELECT
-	 p.ProductName,
-	 MAX(p.Price) AS MaxPrice,
-	 MIN (p.Price) AS MinPrice
+    p.ProductName,
+    SUM(s.Quantity) AS TotalUnitsSold,
+    SUM(s.Revenue) AS TotalRevenue,
+    AVG(CAST(s.NPS_Score AS FLOAT)) AS AvgNPS
 FROM tbl_Product p
-JOIN tbl_SalesTransaction s
-	ON p.ProductID = s.ProductID
-GROUP BY p.ProductName
-ORDER BY p.ProductName;
-GO
-
---Products With Extreme Price Fluctuations
-
-WITH PriceExtremes AS (
-	SELECT 
-		p.ProductName,
-		p.Price
-	FROM tbl_Product p
-	JOIN tbl_SalesTransaction s
-		ON p.ProductID = s.ProductID
-),
-Extremes AS (
-	SELECT
-		MAX (Price) AS MaxPrice,
-		MIN (Price) AS MinPrice
-	FROM PriceExtremes
-)
-
-SELECT DISTINCT pe.ProductName
-FROM PriceExtremes pe, Extremes e
-WHERE pe.Price IN (e.MaxPrice, e.MinPrice)
-GROUP BY pe.ProductName
-HAVING COUNT (DISTINCT pe.Price) = 2;
-GO
-
---Most Priced Categories of Products
-SELECT 
-	Category, 
-	MAX(Price) AS Product_Price
-FROM tbl_Product
-GROUP BY Category
-ORDER BY Product_Price DESC;
-GO
-
---Revenue Per Product
-SELECT DISTINCT 
-	p.ProductName, 
-	SUM(s.Revenue) AS TotalRevenue
-FROM tbl_SalesTransaction s
-JOIN tbl_Product p
-ON p.ProductID = s.ProductID
+LEFT JOIN tbl_SalesTransaction s ON s.ProductID = p.ProductID
 GROUP BY p.ProductName
 ORDER BY TotalRevenue DESC;
-
---2024 TOTAL REVENUE
-SELECT SUM(Revenue) AS TotalRevenue
-FROM tbl_SalesTransaction
-WHERE YEAR(TransactionDate) = 2024;
-
--- 2025 TOTAL REVENUE
-SELECT SUM(Revenue) AS TotalRevenue
-FROM tbl_SalesTransaction
-WHERE YEAR(TransactionDate) = 2025;
-
--- TOTAL REVENUE
-SELECT SUM(Revenue) AS TotalRevenue
-FROM tbl_SalesTransaction;
-
---MARKETING LEVEL ANALYSIS
---Marketing Channel Count
-SELECT COUNT (DISTINCT Channel) AS ChannelCount
-FROM tbl_MarketingChannel;
-
---Marketing Platform Count
-SELECT COUNT (DISTINCT Platform) AS ChannelPlatform
-FROM tbl_MarketingChannel;
-
---Transactions Per Maketing Channel
-SELECT 
-	m.Channel,
-	COUNT(s.TransactionID) AS TotalTransactions
-FROM tbl_MarketingChannel m
-JOIN tbl_SalesTransaction s
-	ON m.MarketingID = s.MarketingID
-GROUP BY m.Channel;
-
---Transactions Per Platform
-SELECT
-	m.Platform,
-	COUNT(s.TransactionID) AS TotalTransactions
-FROM tbl_MarketingChannel m
-JOIN tbl_SalesTransaction s
-	ON m.MarketingID = s.TransactionID
-GROUP BY m.Platform;
-
--- Marketing Channel Per Product
-WITH ChannelUsage AS (
-    SELECT 
-        p.ProductName,
-        m.Channel,
-        COUNT(*) AS ChannelCount,
-        ROW_NUMBER() OVER (
-            PARTITION BY p.ProductName 
-            ORDER BY COUNT(*) DESC
-        ) AS RankPerProduct
-    FROM tbl_Product p
-    JOIN tbl_SalesTransaction s ON p.ProductID = s.ProductID
-    JOIN tbl_MarketingChannel m ON s.MarketingID = m.MarketingID
-    GROUP BY p.ProductName, m.Channel
-)
-SELECT ProductName, Channel, ChannelCount
-FROM ChannelUsage
-WHERE RankPerProduct = 1
-ORDER BY ChannelCount DESC;
 GO
 
--- Most Effective Marketing channel per Revenue
-SELECT
-	m.Channel,
-	SUM(s.Revenue) AS TotalRevenue
+-- 9.3. Top & Bottom Selling Products
+WITH ProductSales AS (
+    SELECT p.ProductName, SUM(s.Quantity) AS TotalQuantity
+    FROM tbl_SalesTransaction s
+    JOIN tbl_Product p ON s.ProductID = p.ProductID
+    GROUP BY p.ProductName
+)
+SELECT * FROM ProductSales WHERE TotalQuantity = (SELECT MAX(TotalQuantity) FROM ProductSales)
+   OR TotalQuantity = (SELECT MIN(TotalQuantity) FROM ProductSales);
+GO
+
+-- 9.4. Product Price Range
+SELECT 
+    ProductName,
+    MIN(Price) AS MinPrice,
+    MAX(Price) AS MaxPrice
+FROM tbl_Product
+GROUP BY ProductName;
+GO
+
+-- 10. MARKETING & PLATFORM ANALYSIS
+-- 10.1. Marketing Channel Performance
+SELECT 
+    m.Channel,
+    COUNT(s.TransactionID) AS TotalTransactions,
+    SUM(s.Revenue) AS TotalRevenue,
+    AVG(s.NPS_Score) AS AvgNPS
 FROM tbl_MarketingChannel m
-JOIN tbl_SalesTransaction s
-ON m.MarketingID = s.MarketingID
+JOIN tbl_SalesTransaction s ON m.MarketingID = s.MarketingID
 GROUP BY m.Channel
 ORDER BY TotalRevenue DESC;
 GO
 
--- Revenue per Marketing Platform
-SELECT
-	m.Platform,
-	SUM(s.Revenue) AS TotalRevenue
+-- 10.2. Platform Performance
+SELECT 
+    m.Platform,
+    COUNT(s.TransactionID) AS TotalTransactions,
+    SUM(s.Revenue) AS TotalRevenue,
+    AVG(s.NPS_Score) AS AvgNPS
 FROM tbl_MarketingChannel m
-JOIN tbl_SalesTransaction s
-ON m.MarketingID = s.MarketingID
+JOIN tbl_SalesTransaction s ON m.MarketingID = s.MarketingID
 GROUP BY m.Platform
 ORDER BY TotalRevenue DESC;
 GO
 
--- Revenue per country
-SELECT
+-- 11. REVENUE & GEOGRAPHY ANALYSIS
+-- 11.1. Revenue by Country
+SELECT 
     c.Country,
     SUM(s.Revenue) AS TotalRevenue
 FROM tbl_SalesTransaction s
-JOIN tbl_Product p ON s.ProductID = p.ProductID
 JOIN tbl_Customer c ON s.CustomerID = c.CustomerID
 GROUP BY c.Country
 ORDER BY TotalRevenue DESC;
 GO
 
--- Overall NPS Score
-SELECT
-    COUNT(*) AS TotalResponses,
-    SUM(CASE WHEN NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) AS Promoters,
-    SUM(CASE WHEN NPS_Score BETWEEN 7 AND 8 THEN 1 ELSE 0 END) AS Passives,
-    SUM(CASE WHEN NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END) AS Detractors,
-    ROUND(((SUM(CASE WHEN NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) -
-            SUM(CASE WHEN NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END)) * 100.0) /
-            NULLIF(COUNT(*), 0), 2) AS OverallNPS
-FROM tbl_SalesTransaction;
-
---NPS Score Per Product
-SELECT
-    p.ProductName,
-    COUNT(*) AS Responses,
-    ROUND(((SUM(CASE WHEN s.NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) -
-            SUM(CASE WHEN s.NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END)) * 100.0) /
-            NULLIF(COUNT(*), 0), 2) AS NPS_Score
-FROM tbl_SalesTransaction s
-JOIN tbl_Product p ON s.ProductID = p.ProductID
-WHERE s.NPS_Score IS NOT NULL
-GROUP BY p.ProductName;
-
--- Average NPS score per Marketing Channel
-SELECT
-	m.Channel,
-	AVG(s.NPS_Score) AS AvgNPS
-FROM tbl_MarketingChannel m
-JOIN tbl_SalesTransaction s
-	ON m.MarketingID = s.MarketingID
-GROUP BY m.Channel;
-
---AVG NPS score per Marketing Platform
-SELECT
-	m.Platform,
-	AVG(s.NPS_Score) AS AvgNPS
-FROM tbl_MarketingChannel m
-JOIN tbl_SalesTransaction s
-	ON m.MarketingID = s.MarketingID
-GROUP BY m.Platform;
-
---	 REPORTS AND KPIs
---Daily Transactions
-SELECT 
-	TransactionDate,
-	SUM (Revenue) AS DailyTotal
-FROM tbl_SalesTransaction
-GROUP BY TransactionDate
-ORDER BY TransactionDate;
-
---Weekly Transaction
-SELECT 
-	DATEPART (WEEK, TransactionDate) AS WeekNumber,
-	YEAR(TransactionDate) AS Year,
-	SUM (Revenue) AS DailyTotal
-FROM tbl_SalesTransaction
-GROUP BY YEAR(TransactionDate), DATEPART (WEEK, TransactionDate)
-ORDER BY Year, WeekNumber;
-
---Monthly Transaction
-SELECT
-	DATENAME(MONTH,TransactionDate) AS Month,
-	MONTH(TransactionDate) AS MonthNumber,
-	YEAR(TransactionDate) AS Year,
-	SUM (Revenue) AS MonthlyTotal
-FROM tbl_SalesTransaction
-GROUP BY 
-	DATENAME(MONTH,TransactionDate),
-	MONTH(TransactionDate),
-	YEAR(TransactionDate) 
-ORDER BY 
-	YEAR,
-	MonthNumber;
-
---Quarterly Revenue
-SELECT
-	YEAR (TransactionDate) AS YEAR,
-	DATEPART (QUARTER, TransactionDate) AS Quarter,
-	SUM (Revenue) AS QuarterlyTotal
-FROM tbl_SalesTransaction
-GROUP BY DATEPART (QUARTER, TransactionDate),YEAR(TransactionDate) 
-ORDER BY Quarter, YEAR DESC;
-
---Yearly Revenue
-SELECT
-	YEAR (TransactionDate) AS YEAR,
-	SUM (Revenue) AS YearlyTotal
-FROM tbl_SalesTransaction
-GROUP BY YEAR(TransactionDate) 
-ORDER BY YEAR DESC;
-
--- View of Revenue Per Product and Country
-CREATE VIEW vw_ProductRevenueByCountry AS
+-- 11.2. Revenue by Product and Country (View)
+CREATE OR ALTER VIEW vw_ProductRevenueByCountry AS
 SELECT
     p.ProductName,
     c.Country,
@@ -540,179 +283,150 @@ JOIN tbl_Product p ON s.ProductID = p.ProductID
 JOIN tbl_Customer c ON s.CustomerID = c.CustomerID
 GROUP BY p.ProductName, c.Country;
 GO
-SELECT *
-FROM vw_ProductRevenueByCountry;
 
--- Temp Table
-SELECT TOP 5
-	p.ProductID, 
-	p.ProductName, 
-	SUM(s.Revenue) AS TotalRevenue
-INTO #TopProducts
-FROM tbl_SalesTransaction s
-JOIN tbl_Product p
-ON p.ProductID = s.ProductID
-GROUP BY p.ProductID, p.ProductName
-ORDER BY TotalRevenue DESC;
-
---Product Lifecycle Revenue
+-- 12. NPS ANALYSIS
+-- 12.1. Overall NPS Score
 SELECT
-    p.ProductID,
+    COUNT(*) AS TotalResponses,
+    SUM(CASE WHEN NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) AS Promoters,
+    SUM(CASE WHEN NPS_Score BETWEEN 7 AND 8 THEN 1 ELSE 0 END) AS Passives,
+    SUM(CASE WHEN NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END) AS Detractors,
+    ROUND(
+        (
+            (SUM(CASE WHEN NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) -
+             SUM(CASE WHEN NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END)) * 100.0
+        ) / NULLIF(COUNT(*), 0), 2
+    ) AS OverallNPS
+FROM tbl_SalesTransaction;
+GO
+
+-- 12.2. NPS Score Per Product
+SELECT
     p.ProductName,
-    FORMAT(s.TransactionDate, 'yyyy-MM') AS SaleMonth,
-    SUM(s.Revenue) AS MonthlyRevenue,
-    SUM(s.Quantity) AS UnitsSold
+    COUNT(*) AS Responses,
+    ROUND(
+        (
+            (SUM(CASE WHEN s.NPS_Score BETWEEN 9 AND 10 THEN 1 ELSE 0 END) -
+             SUM(CASE WHEN s.NPS_Score BETWEEN 0 AND 6 THEN 1 ELSE 0 END)) * 100.0
+        ) / NULLIF(COUNT(*), 0), 2
+    ) AS NPS_Score
 FROM tbl_SalesTransaction s
 JOIN tbl_Product p ON s.ProductID = p.ProductID
-GROUP BY p.ProductID, p.ProductName, FORMAT(s.TransactionDate, 'yyyy-MM');
+WHERE s.NPS_Score IS NOT NULL
+GROUP BY p.ProductName;
 GO
 
--- Top 10 Highest Countries Per Revenue
-SELECT TOP 10
-    c.Country,
-    SUM(s.Revenue) AS TotalRevenue
-FROM tbl_SalesTransaction s
-JOIN tbl_Product p ON s.ProductID = p.ProductID
-JOIN tbl_Customer c ON s.CustomerID = c.CustomerID
-GROUP BY c.Country
-ORDER BY TotalRevenue DESC;
-GO
-
--- Top 10 lowest countries per revenue
-SELECT TOP 10
-    c.Country,
-    SUM(s.Revenue) AS TotalRevenue
-FROM tbl_SalesTransaction s
-JOIN tbl_Product p ON s.ProductID = p.ProductID
-JOIN tbl_Customer c ON s.CustomerID = c.CustomerID
-GROUP BY c.Country
-ORDER BY TotalRevenue ASC;
-GO
-
---Revenue per Country and Platform
-SELECT
-    c.Country,
-    m.Platform,
-    SUM(s.Revenue) AS TotalRevenue
-FROM tbl_SalesTransaction s
-JOIN tbl_Customer c ON s.CustomerID = c.CustomerID
-JOIN tbl_MarketingChannel m ON s.MarketingID = m.MarketingID
-GROUP BY c.Country, m.Platform
-ORDER BY TotalRevenue DESC;
-
---High Performing Marketing Channels by Revenue Contribution
+-- 12.3. NPS by Channel & Platform
 SELECT
     m.Channel,
-    COUNT(*) AS TransactionCount,
-    SUM(s.Revenue) AS TotalRevenue,
-    AVG(s.Revenue) AS AvgRevenuePerTransaction
-FROM tbl_SalesTransaction s
-JOIN tbl_MarketingChannel m ON s.MarketingID = m.MarketingID
-GROUP BY m.Channel
-ORDER BY TotalRevenue DESC;
+    AVG(s.NPS_Score) AS AvgNPS
+FROM tbl_MarketingChannel m
+JOIN tbl_SalesTransaction s ON m.MarketingID = s.MarketingID
+GROUP BY m.Channel;
+GO
 
--- Product Cross Sell Opportunities
-WITH CustomerProduct AS (
-    SELECT CustomerID, ProductID
-    FROM tbl_SalesTransaction
-    GROUP BY CustomerID, ProductID
-),
-Pairs AS (
-    SELECT 
-        cp1.ProductID AS ProductA,
-        cp2.ProductID AS ProductB,
-        COUNT(*) AS CoPurchaseCount
-    FROM CustomerProduct cp1
-    JOIN CustomerProduct cp2 ON cp1.CustomerID = cp2.CustomerID AND cp1.ProductID < cp2.ProductID
-    GROUP BY cp1.ProductID, cp2.ProductID
-)
+SELECT
+    m.Platform,
+    AVG(s.NPS_Score) AS AvgNPS
+FROM tbl_MarketingChannel m
+JOIN tbl_SalesTransaction s ON m.MarketingID = s.MarketingID
+GROUP BY m.Platform;
+GO
+
+-- 13. REPORTS AND KPIs
+-- 13.1. Daily Revenue Trend
 SELECT 
-    p1.ProductName AS ProductA,
-    p2.ProductName AS ProductB,
-    CoPurchaseCount
-FROM Pairs
-JOIN tbl_Product p1 ON p1.ProductID = Pairs.ProductA
-JOIN tbl_Product p2 ON p2.ProductID = Pairs.ProductB
-ORDER BY CoPurchaseCount DESC;
+    TransactionDate,
+    SUM(Revenue) AS DailyTotal
+FROM tbl_SalesTransaction
+GROUP BY TransactionDate
+ORDER BY TransactionDate;
 GO
 
---Product with no Sales
-SELECT * 
-FROM tbl_Product 
-WHERE ProductID NOT IN (SELECT DISTINCT ProductID FROM tbl_SalesTransaction);
+-- 13.2. Weekly Revenue Trend
+SELECT
+    DATEPART(WEEK, TransactionDate) AS WeekNumber,
+    YEAR(TransactionDate) AS Year,
+    SUM(Revenue) AS WeeklyTotal
+FROM tbl_SalesTransaction
+GROUP BY YEAR(TransactionDate), DATEPART(WEEK, TransactionDate)
+ORDER BY Year, WeekNumber;
 GO
 
--- Top 5 Most Patronizing Customers
-SELECT TOP 5 
-    c.FirstName,
-    c.Country,
-    SUM(s.Revenue) AS TotalSpent
-FROM tbl_SalesTransaction s
-JOIN tbl_Customer c ON c.CustomerID = s.CustomerID
-GROUP BY c.FirstName, c.Country
-ORDER BY TotalSpent DESC;
+-- 13.3. Monthly Revenue Trend
+SELECT
+    DATENAME(MONTH, TransactionDate) AS Month,
+    MONTH(TransactionDate) AS MonthNumber,
+    YEAR(TransactionDate) AS Year,
+    SUM(Revenue) AS MonthlyTotal
+FROM tbl_SalesTransaction
+GROUP BY DATENAME(MONTH, TransactionDate), MONTH(TransactionDate), YEAR(TransactionDate)
+ORDER BY Year, MonthNumber;
 GO
 
---Product Sales Summary
-SELECT DISTINCT
-	p.ProductID,
-    p.ProductName,
-    COUNT(DISTINCT s.TransactionID) AS TotalSales,
-    SUM(s.Quantity) AS TotalUnitsSold,
-    SUM(s.Revenue) AS TotalRevenue,
-    AVG(CAST(s.NPS_Score AS FLOAT)) AS AvgNPS
-FROM tbl_Product p
-LEFT JOIN tbl_SalesTransaction s ON s.ProductID = p.ProductID
-GROUP BY
-	p.ProductID,
-	p.ProductName;
+-- 13.4. Quarterly Revenue Trend
+SELECT
+    YEAR(TransactionDate) AS Year,
+    DATEPART(QUARTER, TransactionDate) AS Quarter,
+    SUM(Revenue) AS QuarterlyTotal
+FROM tbl_SalesTransaction
+GROUP BY YEAR(TransactionDate), DATEPART(QUARTER, TransactionDate)
+ORDER BY Year, Quarter;
 GO
 
+-- 13.5. Yearly Revenue Trend
+SELECT
+    YEAR(TransactionDate) AS Year,
+    SUM(Revenue) AS YearlyTotal
+FROM tbl_SalesTransaction
+GROUP BY YEAR(TransactionDate)
+ORDER BY Year DESC;
+GO
 
---Executive Summary Report (KPI)
-CREATE VIEW vw_ExecutiveSummary AS
+-- 14. EXECUTIVE SUMMARY VIEW
+CREATE OR ALTER VIEW vw_ExecutiveSummary AS
 SELECT
     (SELECT COUNT(DISTINCT CustomerID) FROM tbl_Customer) AS TotalCustomers,
     (SELECT COUNT(DISTINCT ProductName) FROM tbl_Product) AS TotalProducts,
-    (SELECT COUNT(DISTINCT TransactionID) FROM tbl_SalesTransaction) AS TotalTransactions,
+    (SELECT COUNT(*) FROM tbl_SalesTransaction) AS TotalTransactions,
     (SELECT SUM(Revenue) FROM tbl_SalesTransaction) AS TotalRevenue,
     (SELECT AVG(NPS_Score * 1.0) FROM tbl_SalesTransaction) AS AvgNPS,
     (SELECT COUNT(DISTINCT Country) FROM tbl_Customer) AS TotalCountries,
     (SELECT COUNT(DISTINCT Platform) FROM tbl_MarketingChannel) AS TotalPlatforms,
-	(SELECT COUNT (DISTINCT Channel) FROM tbl_MarketingChannel) AS TotalMarketingChannel;
-GO
-SELECT *
-FROM vw_ExecutiveSummary;
+    (SELECT COUNT(DISTINCT Channel) FROM tbl_MarketingChannel) AS TotalMarketingChannels;
 GO
 
---Sales Stored Procedure
-CREATE PROCEDURE usp_ShowSales
+-- 15. STORED PROCEDURES
+-- 15.1. Show Sales Procedure
+CREATE OR ALTER PROCEDURE usp_ShowSales
 AS
 BEGIN
-SELECT
-    c.FirstName AS CustomerName,
-    c.Country,
-    p.ProductName,
-    p.Category,
-    m.Channel,
-    s.TransactionDate,
-    s.Quantity,
-    s.Revenue,
-    s.NPS_Score
-FROM tbl_SalesTransaction s
-JOIN tbl_Customer c ON s.CustomerID = c.CustomerID
-JOIN tbl_Product p ON s.ProductID = p.ProductID
-JOIN tbl_MarketingChannel m ON s.MarketingID = m.MarketingID;
+    SELECT
+        c.FirstName AS CustomerName,
+        c.Country,
+        p.ProductName,
+        p.Category,
+        m.Channel,
+        s.TransactionDate,
+        s.Quantity,
+        s.Revenue,
+        s.NPS_Score
+    FROM tbl_SalesTransaction s
+    JOIN tbl_Customer c ON s.CustomerID = c.CustomerID
+    JOIN tbl_Product p ON s.ProductID = p.ProductID
+    JOIN tbl_MarketingChannel m ON s.MarketingID = m.MarketingID;
 END;
 GO
 
-EXECUTE usp_ShowSales;
+-- Query: Execute Show Sales Procedure
+EXEC usp_ShowSales;
+GO
 
--- Stored Procedure For Revenue Per Product
-CREATE PROCEDURE usp_RevenuePerProduct
+-- 15.2. Revenue Per Product Procedure
+CREATE OR ALTER PROCEDURE usp_RevenuePerProduct
 AS
 BEGIN
-SELECT
+    SELECT
         p.ProductName,
         SUM(s.Revenue) AS TotalRevenue
     FROM tbl_SalesTransaction s
@@ -720,17 +434,16 @@ SELECT
     GROUP BY p.ProductName
     ORDER BY TotalRevenue DESC;
 END;
+GO
 
---Total Revenue Function
-CREATE FUNCTION fn_TotalRevenue()
+-- 16. SCALAR FUNCTION
+-- 16.1. Total Revenue Function
+CREATE OR ALTER FUNCTION fn_TotalRevenue()
 RETURNS DECIMAL(18, 2)
 AS
 BEGIN
     DECLARE @TotalRevenue DECIMAL(18, 2);
-    SELECT @TotalRevenue = SUM(Revenue)
-    FROM tbl_SalesTransaction;
+    SELECT @TotalRevenue = SUM(Revenue) FROM tbl_SalesTransaction;
     RETURN @TotalRevenue;
 END;
-
 GO
-
