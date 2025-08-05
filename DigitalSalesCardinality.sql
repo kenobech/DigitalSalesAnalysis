@@ -1,39 +1,55 @@
-﻿--ENTITY DEFINITIONS
---1. tbl_Customer
---Primary Key: CustomerID
+﻿-- ============================================
+-- ENTITY DEFINITIONS & CARDINALITY (STAR SCHEMA)
+-- ============================================
 
---Attributes: FirstName, Gender, Country
+-- 1. tbl_Customer (Dimension)
+-- Primary Key: CustomerID (INT, IDENTITY)
+-- Attributes:
+--   - FirstName VARCHAR(100)
+--   - Gender VARCHAR(100)
+--   - Country VARCHAR(100)
 
---2. tbl_Product
---Primary Key: ProductID
+-- 2. tbl_Product (Dimension)
+-- Primary Key: ProductID (INT, IDENTITY)
+-- Attributes:
+--   - ProductName VARCHAR(100)
+--   - Category VARCHAR(100)
+--   - Price DECIMAL(10,2)
 
---Attributes: ProductName, Category, Price
+-- 3. tbl_MarketingChannel (Dimension)
+-- Primary Key: MarketingID (INT, IDENTITY)
+-- Attributes:
+--   - Platform VARCHAR(100)
+--   - Channel VARCHAR(100)
 
---3. tbl_MarketingChannel
---Primary Key: MarketingID
+-- 4. tbl_SalesTransaction (Fact Table)
+-- Primary Key: TransactionID (INT, IDENTITY)
+-- Foreign Keys:
+--   - CustomerID → tbl_Customer(CustomerID)
+--   - ProductID → tbl_Product(ProductID)
+--   - MarketingID → tbl_MarketingChannel(MarketingID)
+-- Attributes:
+--   - TransactionDate DATE
+--   - Quantity INT
+--   - Revenue DECIMAL(12,2)
+--   - NPS_Score INT
 
---Attributes: Platform, Channel
+-- 5. tbl_stgRawData (Staging Table)
+-- No Primary Key (used for raw data import and cleansing)
 
---4. tbl_SalesTransaction
---Primary Key: TransactionID
+-- ============================================
+-- CARDINALITY & RELATIONSHIPS
+-- ============================================
+-- One-to-Many Relationships:
+--   tbl_Customer        1 → N tbl_SalesTransaction
+--   tbl_Product         1 → N tbl_SalesTransaction
+--   tbl_MarketingChannel 1 → N tbl_SalesTransaction
 
---Foreign Keys:
+-- Fact Table:
+--   tbl_SalesTransaction is the central fact table, referencing all dimensions.
 
---CustomerID → tbl_Customer
+-- Star Schema Diagram (Textual):
+--   tbl_Customer        |
+--   tbl_Product         |--- tbl_SalesTransaction (Fact Table)
+--   tbl_MarketingChannel|
 
---ProductID → tbl_Product
-
---MarketingID → tbl_MarketingChannel
-
---Attributes: TransactionDate, Quantity, Revenue, NPS_Score
-
---5. tbl_stgRawData
---No PrimaryK (staging table)
-
---Cardinality
-| From                                            | To            | Relationship Type                              |
-| ----------------------------------------------- | ------------- | ---------------------------------------------- |
-| `tbl_Customer` → `tbl_SalesTransaction`         | **1-to-many** | One customer can have many transactions        |             |
-| `tbl_Product` → `tbl_SalesTransaction`          | **1-to-many** | One product can appear in many transactions    |             |
-| `tbl_MarketingChannel` → `tbl_SalesTransaction` | **1-to-many** | One channel can be linked to many transactions |             |
-| `tbl_SalesTransaction`                          | Fact Table    | Many-to-1 to all above                         |             |
